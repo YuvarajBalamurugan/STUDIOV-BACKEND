@@ -1,0 +1,2 @@
+file 'input/SampleVideo_640x360_20mb.mp4'
+file 'input/SampleVideo_640x360_10mb.mp4'
