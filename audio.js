@@ -1,6 +1,6 @@
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
-const path = require('path');
+const fs = require('fs');
 const readline = require('readline');
 
 // Set FFmpeg path
@@ -16,15 +16,10 @@ function addAudio(inputVideo, inputAudio, outputVideo) {
         .outputOptions('-map 1:a:0') // Map the audio stream
         .outputOptions('-shortest')  // Make the output duration the same as the shorter input (video or audio)
         .output(outputVideo)
-        .on('end', () => console.log('Audio addition done'))
+        .on('end', () => console.log(`Audio added successfully. Output saved to ${outputVideo}`))
         .on('error', err => console.log('Error: ' + err))
         .run();
 }
-
-// Predefined parameters
-const inputVideo = path.join(__dirname, 'input/SampleVideo_360x240_1mb.mp4'); // Your input video path
-const inputAudio = path.join(__dirname, 'input/Free_Test_Data_2MB_MP3.mp3'); // Your sample audio path
-const outputVideo = path.join(__dirname, 'output_with_audio.mp4'); // Your output video path
 
 // Create readline interface for user input
 const rl = readline.createInterface({
@@ -32,17 +27,25 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-// Function to prompt user for confirmation
-function promptForAudio() {
-    rl.question('Do you want to add audio to the video? (yes/no): ', (answer) => {
-        if (answer.toLowerCase() === 'yes') {
-            addAudio(inputVideo, inputAudio, outputVideo);
-        } else {
-            console.log('Audio addition canceled.');
+// Function to get user input and add audio to the video
+function getUserInput() {
+    rl.question('Enter the path to the input video file: ', (inputVideo) => {
+        if (!fs.existsSync(inputVideo)) {
+            console.log('Input video file does not exist. Please try again.');
+            return getUserInput(); // Retry if file does not exist
         }
-        rl.close();
-    });
+
+        rl.question('Enter the path to the input audio file: ', (inputAudio) => {
+            if (!fs.existsSync(inputAudio)) {
+                console.log('Input audio file does not exist. Please try again.');
+                return getUserInput(); // Retry if file does not exist
+            }
+            const outputVideo='outputAudio.mp4';
+            rl.close();
+            addAudio(inputVideo, inputAudio, outputVideo);
+            });
+        });
 }
 
 // Start the prompt
-promptForAudio();
+getUserInput();
